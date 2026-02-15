@@ -1,13 +1,8 @@
 # - *- coding: utf- 8 - *-
-import aiohttp
-import asyncio
 import random
-from typing import Dict, Optional
+from typing import Optional
 import time
-import json
-import requests
-from aiohttp import ClientSession
-import configparser
+from tgbot.services.http_client import get_shared_session
 
 try:
     import type_extension_package as type_extension
@@ -66,12 +61,12 @@ class CryptoUSDT:
                 'apikey': api_key
             }
             
-            async with aiohttp.ClientSession() as session:
-                async with session.get(api_url, params=params) as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        if data['status'] == '1':
-                            return data['result']
+            session = get_shared_session("crypto_usdt_api")
+            async with session.get(api_url, params=params) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    if data['status'] == '1':
+                        return data['result']
             return None
         except Exception as e:
             print(f"Error getting transactions for {network}: {e}")
@@ -126,14 +121,14 @@ class CryptoUSDT:
                 'apikey': api_key
             }
             
-            async with aiohttp.ClientSession() as session:
-                async with session.get(api_url, params=params) as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        if data['status'] == '1':
-                            # Конвертируем из wei в USDT
-                            balance = float(data['result']) / (10 ** 18)
-                            return round(balance, 2)
+            session = get_shared_session("crypto_usdt_api")
+            async with session.get(api_url, params=params) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    if data['status'] == '1':
+                        # Конвертируем из wei в USDT
+                        balance = float(data['result']) / (10 ** 18)
+                        return round(balance, 2)
             return 0.0
         except Exception as e:
             print(f"Error getting balance for {network}: {e}")
