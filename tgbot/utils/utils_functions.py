@@ -114,3 +114,8 @@ async def send_admins(msg: str, channel: bool):
         elif channel == False:
             for admin in get_admins():
                 await bot.send_message(chat_id=admin, text=msg)
+            await bot.send_message(chat_id=channel_id, text=msg)
+        elif channel == False:
+            for admin in get_admins():
+                await bot.send_message(chat_id=admin, text=msg)
+
