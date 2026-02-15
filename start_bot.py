@@ -65,6 +65,7 @@ from aiogram.client.session.aiohttp import AiohttpSession
 
 from tgbot.services.sqlite import create_db
 from tgbot.utils.other_functions import update_profit_week, update_profit_day, autobackup_db
+from tgbot.services.http_client import close_shared_sessions
 from tgbot.handlers import setup_handlers
 from tgbot.middlewares import setup_middlewares
 from tgbot.data.config import bot_token
@@ -116,6 +117,7 @@ async def main():
         # Запускаем поллинг
         await dp.start_polling(bot, skip_updates=True)
     finally:
+        await close_shared_sessions()
         await bot.session.close()
 
 if __name__ == "__main__":
