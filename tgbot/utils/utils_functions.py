@@ -1,6 +1,6 @@
 # - *- coding: utf- 8 - *-
 import time
-import configparser
+from functools import lru_cache
 
 from datetime import datetime
 from tgbot.data import config
@@ -27,34 +27,35 @@ def get_date():
     return this_date
 
 # Получение админов
-def get_admins():
-    read_admins = configparser.ConfigParser()
-    read_admins.read("settings.ini")
-
-    admins = read_admins['settings']['admin_id'].strip().replace(" ", "")
+@lru_cache(maxsize=1)
+def _cached_admins(raw_admins: str):
+    admins = raw_admins.strip().replace(" ", "")
 
     if "," in admins:
         admins = admins.split(",")
+    elif len(admins) >= 1:
+        admins = [admins]
     else:
-        if len(admins) >= 1:
-            admins = [admins]
-        else:
-            admins = []
+        admins = []
 
-    while "" in admins: 
+    while "" in admins:
         admins.remove("")
-    while " " in admins: 
+    while " " in admins:
         admins.remove(" ")
-    
-    admins = list(map(int, admins))
-    
-    return admins
+
+    return list(map(int, admins))
 
 
+def get_admins():
+    """Получение админов (кешируется в памяти процесса)."""
+    admin_id = config.read_config.get('settings', 'admin_id', fallback='')
+    return _cached_admins(admin_id)
 
-# Разбив списка по количеству переданных значений
-def split_messages(get_list, count):
-    return [get_list[i:i + count] for i in range(0, len(get_list), count)]
+
+def refresh_admins_cache():
+    """Ручной сброс кеша админов (например, после изменения конфига)."""
+    _cached_admins.cache_clear()
+
 
 
 # Конвертация дней
