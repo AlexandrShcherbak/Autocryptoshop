@@ -1,5 +1,7 @@
 # - *- coding: utf- 8 - *-
 
+import time
+
 def format_number(number):
     """Форматирует число для отображения через запятую"""
     return str(number).replace('.', ',')
@@ -813,11 +815,35 @@ def get_text(user_language, key, **kwargs):
     
     return text
 
+_USER_LANGUAGE_CACHE = {}
+_USER_LANGUAGE_TTL_SECONDS = 60
+
+
+def set_user_language_cache(user_id, language):
+    """Обновляет кеш языка пользователя после смены языка."""
+    _USER_LANGUAGE_CACHE[int(user_id)] = (language, time.time())
+
+
+def clear_user_language_cache(user_id=None):
+    """Сброс кеша языка: для одного пользователя или полностью."""
+    if user_id is None:
+        _USER_LANGUAGE_CACHE.clear()
+    else:
+        _USER_LANGUAGE_CACHE.pop(int(user_id), None)
+
+
 def get_user_language(user_id):
-    """Получает язык пользователя из базы данных"""
+    """Получает язык пользователя из БД с коротким кешированием."""
     from tgbot.services.sqlite import get_user
-    
+
+    user_id = int(user_id)
+    cached = _USER_LANGUAGE_CACHE.get(user_id)
+    now = time.time()
+
+    if cached and now - cached[1] < _USER_LANGUAGE_TTL_SECONDS:
+        return cached[0]
+
     user = get_user(id=user_id)
-    if user and user.get('language'):
-        return user['language']
-    return 'ru'  # По умолчанию русский 
+    language = user['language'] if user and user.get('language') else 'ru'
+    _USER_LANGUAGE_CACHE[user_id] = (language, now)
+    return language
