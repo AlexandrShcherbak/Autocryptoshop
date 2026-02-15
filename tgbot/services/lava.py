@@ -1,12 +1,19 @@
 import aiohttp
 import json, hmac, hashlib, time, random, secrets
 
+from tgbot.services.http_client import get_shared_session
+
+
 class Lava:
     def __init__(self, shop_id: str, secret_token: str) -> None:
         self.shop_id = shop_id
         self.secret = secret_token
         self.base_url = "https://api.lava.ru/"
         self.timeout = aiohttp.ClientTimeout(total=360)
+        self.session_name = f"lava:{self.shop_id}"
+
+    def _session(self):
+        return get_shared_session(self.session_name, timeout=self.timeout)
 
     def _signature_headers(self, data):
         jsonStr = json.dumps(data).encode()
@@ -28,12 +35,8 @@ class Lava:
             "comment": comment
         }
         headers = self._signature_headers(params)
-        async with aiohttp.ClientSession(headers=headers, timeout=self.timeout) as session:
-            response = await session.post(url=url, headers=headers, json=params)
-
-            res = await response.json()
-            await session.close()
-            return res
+        response = await self._session().post(url=url, headers=headers, json=params)
+        return await response.json()
 
     async def status_invoice(self, invoice_id: str) -> bool:
         url = f"{self.base_url}/business/invoice/status"
@@ -42,23 +45,12 @@ class Lava:
             "invoiceId": invoice_id
         }
         headers = self._signature_headers(params)
-        async with aiohttp.ClientSession(headers=headers, timeout=self.timeout) as session:
-            response = await session.post(url=url, headers=headers, json=params)
-            res = await response.json()
-            await session.close()
-            if res['data']['status'] == "success":
-                return True
-            else:
-                return False
-            
+        response = await self._session().post(url=url, headers=headers, json=params)
+        res = await response.json()
+        return res['data']['status'] == "success"
 
     async def get_balance(self):
         params = {'shopId': self.shop_id}
         headers = self._signature_headers(params)
-        async with aiohttp.ClientSession(headers=headers, timeout=self.timeout) as session:
-
-            request = await session.post('https://api.lava.ru/business/shop/get-balance', json=params, headers=headers)
-
-            response = await request.json()
-            await session.close()
-            return response
+        request = await self._session().post('https://api.lava.ru/business/shop/get-balance', json=params, headers=headers)
+        return await request.json()
