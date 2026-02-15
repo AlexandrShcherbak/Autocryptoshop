@@ -1,4 +1,4 @@
-# 🛒 AutoCryptoShop - Telegram Bot
+# 🛒 Auto Crypto Shop - Telegram Bot
 
 Modern Telegram bot for automated trading with cryptocurrency payments support and multi-level referral system.
 
@@ -35,13 +35,15 @@ pip install -r requirements.txt
 ```
 
 3. **Configure settings:**
-Edit the `settings.ini` file:
-```ini
-[settings]
-BOT_TOKEN = your_bot_token_here
-ADMINS = your_admin_id_here
-SUPPORT_USER = @your_support_username
-CHAT_ID = your_chat_id
+Copy `settings.ini.example` to `settings.ini` and fill required values:
+```bash
+cp settings.ini.example settings.ini
+```
+
+You can also override sensitive values with environment variables (recommended for production), e.g.:
+```bash
+export ACS_BOT_TOKEN="your_bot_token_here"
+export ACS_DATABASE_PATH="tgbot/data/database.db"
 ```
 
 4. **Run the bot:**
@@ -177,11 +179,6 @@ Adding a new language:
 
 This project is licensed under the MIT License. See the `LICENSE` file for details.
 
-## 📞 Support
-
-- 📧 Email: support@example.com
-- 💬 Telegram: @support_username
-- 🐛 Issues: [GitHub Issues](https://github.com/yourusername/AutoCryptoShop/issues)
 
 ## 📊 Project Status
 
